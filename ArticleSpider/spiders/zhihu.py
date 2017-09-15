@@ -2,6 +2,12 @@
 import json
 import re
 
+#上个为python2的下面为python3
+try:
+    import urlparse as parse
+except:
+    from urllib import parse
+
 import scrapy
 
 
@@ -20,7 +26,13 @@ class ZhihuSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        pass
+        #提取出html页面中的所有url，并跟踪这些url进行进一步爬取
+        #如果提取的url中格式 /question/xxx 就下载之后直接进入解析函数
+        all_urls=response.css("a::attr(href)").extract()
+        all_urls=[parse.urljoin(response.url,url) for url in all_urls]
+        all_url1=filter(lambda x:True if x.startswith("https") else False,all_urls)
+        for url in all_url1:
+           pass
 
     def parse_detail(self,response):
         pass
@@ -52,8 +64,8 @@ class ZhihuSpider(scrapy.Spider):
     def check_login(self,response):
         #验证服务器的返回数据判断是否成功
         text_json=json.loads(response.text)
-        if "msg" in text_json and text_json["msg"]=="登录成功":
-            for url in self.start_urls:
-                yield scrapy.Request(url,dont_filter=True,headers=self.header)
+        #因为验证码问题不能用if来判断
+        # if "msg" in text_json and text_json["msg"]=="登录成功":
+        for url in self.start_urls:
+            yield scrapy.Request(url,dont_filter=True,headers=self.header)
 
-        pass
